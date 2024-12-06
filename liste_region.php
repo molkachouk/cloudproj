@@ -2,7 +2,8 @@
 // Database connection
 include 'config.php';
 // Fetch regions
-$regions = $conn->query("SELECT * FROM region");
+$stmt = $conn->query("SELECT * FROM region");
+$regions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -19,12 +20,12 @@ $regions = $conn->query("SELECT * FROM region");
             <th>ID</th>
             <th>Libelle</th>
         </tr>
-        <?php while ($region = $regions->fetch_assoc()): ?>
+        <?php foreach ($regions as $region): ?>
             <tr>
                 <td><?= htmlspecialchars($region['ID_region']) ?></td>
                 <td><?= htmlspecialchars($region['libelle']) ?></td>
             </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     </table>
     
     <!-- Return Button -->

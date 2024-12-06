@@ -9,7 +9,12 @@ $query = "
     JOIN region ON client.ID_region = region.ID_region
     WHERE client.nom LIKE '%$search%' OR client.prenom LIKE '%$search%'
 ";
-$clients = $conn->query($query);
+// Prepare and execute the query
+$stmt = $conn->prepare($query);
+$stmt->execute(['search' => "%$search%"]);
+
+// Fetch all results
+$clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -37,8 +42,8 @@ $clients = $conn->query($query);
             <th>Modifier</th>
             <th>Supprimer</th>
         </tr>
-        <?php if ($clients->num_rows > 0): ?>
-            <?php while ($client = $clients->fetch_assoc()): ?>
+        <?php if (count($clients) > 0): ?>
+            <?php foreach ($clients as $client): ?>
                 <tr>
                     <td><?= htmlspecialchars($client['nom']) ?></td>
                     <td><?= htmlspecialchars($client['prenom']) ?></td>
@@ -47,7 +52,7 @@ $clients = $conn->query($query);
                     <td><a href="modifier.php?id=<?= $client['ID_client'] ?>">Modifier</a></td>
                     <td><a href="supprimer.php?id=<?= $client['ID_client'] ?>">Supprimer</a></td>
                 </tr>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <tr>
                 <td colspan="6" style="text-align: center;">Aucun client trouvé.</td>

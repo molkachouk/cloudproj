@@ -8,23 +8,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $age = $_POST['age'];
     $ID_region = $_POST['ID_region'];
 
-    // Check if the client already exists
-    $checkQuery = "SELECT * FROM client WHERE nom = '$nom' AND prenom = '$prenom'";
-    $result = $conn->query($checkQuery);
+   // Check if the client already exists (Prepared Statement)
+   $stmt = $conn->prepare("SELECT COUNT(*) FROM client WHERE nom = :nom AND prenom = :prenom");
+   $stmt->execute(['nom' => $nom, 'prenom' => $prenom]);
+   $clientExists = $stmt->fetchColumn() > 0;
 
-    if ($result->num_rows > 0) {
-        // Display an error message if the client already exists
-        echo "<script>alert('Le client avec le même nom et prénom existe déjà.');</script>";
-    } else {
-        // Insert the new client
-        $sql = "INSERT INTO client (nom, prenom, age, ID_region) VALUES ('$nom', '$prenom', $age, $ID_region)";
-        $conn->query($sql);
-        header('Location: liste_client.php');
-    }
+   if ($clientExists) {
+       // Display an error message if the client already exists
+       echo "<script>alert('Le client avec le même nom et prénom existe déjà.');</script>";
+   } else {
+       // Insert the new client (Prepared Statement)
+       $insertStmt = $conn->prepare("INSERT INTO client (nom, prenom, age, ID_region) VALUES (:nom, :prenom, :age, :ID_region)");
+       $insertStmt->execute([
+           'nom' => $nom,
+           'prenom' => $prenom,
+           'age' => $age,
+           'ID_region' => $ID_region,
+       ]);
+
+       // Redirect to the list of clients
+       header('Location: liste_client.php');
+       exit;
+   }
 }
 
-// Fetch regions for the dropdown
-$regions = $conn->query("SELECT * FROM region");
+// Fetch regions for the dropdown (Prepared Statement)
+$regionsStmt = $conn->query("SELECT * FROM region");
+$regions = $regionsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -47,9 +57,9 @@ $regions = $conn->query("SELECT * FROM region");
 
         <label for="ID_region">Région:</label>
         <select id="ID_region" name="ID_region" required>
-            <?php while ($region = $regions->fetch_assoc()): ?>
+            <?php foreach ($regions as $region): ?>
                 <option value="<?= $region['ID_region'] ?>"><?= $region['libelle'] ?></option>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </select>
 
         <button type="submit">Ajouter</button>

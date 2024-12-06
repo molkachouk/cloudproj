@@ -7,17 +7,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $prenom = $_POST['prenom'];
     $age = $_POST['age'];
     $ID_region = $_POST['ID_region'];
-
-    $conn->query("
+    // Use prepared statements to prevent SQL injection
+    $stmt = $conn->prepare("
         UPDATE client
-        SET nom = '$nom', prenom = '$prenom', age = $age, ID_region = $ID_region
-        WHERE ID_client = $id
+        SET nom = :nom, prenom = :prenom, age = :age, ID_region = :ID_region
+        WHERE ID_client = :id
     ");
+    $stmt->execute([
+        'nom' => $nom,
+        'prenom' => $prenom,
+        'age' => $age,
+        'ID_region' => $ID_region,
+        'id' => $id,
+    ]);
+
     header('Location: liste_client.php');
+    exit;
 }
 
-$client = $conn->query("SELECT * FROM client WHERE ID_client = $id")->fetch_assoc();
-$regions = $conn->query("SELECT * FROM region");
+// Fetch client details
+$stmt = $conn->prepare("SELECT * FROM client WHERE ID_client = :id");
+$stmt->execute(['id' => $id]);
+$client = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$client) {
+    die("Client not found.");
+}
+
+// Fetch regions
+$stmt = $conn->query("SELECT * FROM region");
+$regions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -40,11 +59,11 @@ $regions = $conn->query("SELECT * FROM region");
 
         <label for="ID_region">Région:</label>
         <select id="ID_region" name="ID_region" required>
-            <?php while ($region = $regions->fetch_assoc()): ?>
+            <?php foreach ($regions as $region): ?>
                 <option value="<?= $region['ID_region'] ?>" <?= $client['ID_region'] == $region['ID_region'] ? 'selected' : '' ?>>
                     <?= htmlspecialchars($region['libelle']) ?>
                 </option>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </select>
 
         <button type="submit">Modifier</button>
