@@ -31,62 +31,7 @@ $regions = $conn->query("SELECT * FROM region");
 <html>
 <head>
     <title>Ajouter un client</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        form {
-            border: 2px solid #ccc;
-            padding: 20px;
-            border-radius: 8px;
-            background-color: #fff;
-            width: 300px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 14px;
-            text-align: left;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .nav-buttons button {
-            width: 48%;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/ajoutClient.css">
 </head>
 <body>
     <form method="POST">
@@ -111,6 +56,9 @@ $regions = $conn->query("SELECT * FROM region");
 
         <!-- New Button for "Liste des Clients" -->
         <button type="button" onclick="window.location.href='liste_client.php'">Liste des Clients</button>
+        </a>
+    <!-- Return Button -->
+    <a class="return-btn" href="index.php">Return to Home</a>
     </form>
 </body>
 </html>
