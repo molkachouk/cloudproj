@@ -3,18 +3,36 @@ include 'config.php';
 
 // Handle search input
 $search = isset($_GET['search']) ? $_GET['search'] : '';
+
+// Prepare the query with placeholders
 $query = "  
     SELECT client.*, region.libelle
     FROM client
     JOIN region ON client.ID_region = region.ID_region
-    WHERE client.nom LIKE '%$search%' OR client.prenom LIKE '%$search%'
+    WHERE client.nom LIKE ? OR client.prenom LIKE ?
 ";
-// Prepare and execute the query
-$stmt = $conn->prepare($query);
-$stmt->execute(['search' => "%$search%"]);
 
-// Fetch all results
-$clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Prepare the query
+$stmt = $conn->prepare($query);
+
+// Use wildcards for LIKE search
+$searchTerm = "%$search%";
+$stmt->bindValue(1, $searchTerm, PDO::PARAM_STR);
+$stmt->bindValue(2, $searchTerm, PDO::PARAM_STR);
+
+// Execute the query and handle potential errors
+try {
+    $stmt->execute();
+    $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "Query failed: " . $e->getMessage();
+    $clients = []; // Set clients to an empty array on failure
+}
+
+// Debugging - check the SQL query
+//echo "<pre>";
+//print_r($clients);
+//echo "</pre>";
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +40,6 @@ $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <title>Liste des Clients</title>
     <link rel="stylesheet" href="styles/listeClient.css">
-
 </head>
 <body>
     <h1>Liste des Clients</h1>
@@ -42,7 +59,7 @@ $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <th>Modifier</th>
             <th>Supprimer</th>
         </tr>
-        <?php if (count($clients) > 0): ?>
+        <?php if (!empty($clients)): ?>
             <?php foreach ($clients as $client): ?>
                 <tr>
                     <td><?= htmlspecialchars($client['nom']) ?></td>
